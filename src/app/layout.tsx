@@ -7,15 +7,9 @@ export const metadata: Metadata = {
   keywords: ['Falcon Startpage', 'Web Search', 'Daily Trivia', 'Web Shortcuts', 'Productivity Dashboard', 'Minimalist Startpage'],
   authors: [{ name: 'Falcon Team' }],
   icons: {
-    icon: [
-      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-48.png', sizes: '48x48', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/favicon-180.png', sizes: '180x180', type: 'image/png' },
-    ],
-    shortcut: '/favicon-32.png',
+    icon: '/FAV_Final.png',
+    apple: '/FAV_Final.png',
+    shortcut: '/FAV_Final.png',
   },
 };
 
