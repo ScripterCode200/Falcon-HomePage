@@ -1,9 +1,10 @@
-const DEFAULT_URL = 'http://localhost:3000';
+const DEFAULT_URL = 'https://falcon-home-page-h1axd0oyh-shivam-sainis-projects-e02f6aa4.vercel.app';
 
 document.addEventListener('DOMContentLoaded', () => {
   const urlInput = document.getElementById('url-input');
   const saveBtn = document.getElementById('save-btn');
   const statusMsg = document.getElementById('status-msg');
+  const presetVercel = document.getElementById('preset-vercel');
   const presetLocal = document.getElementById('preset-local');
 
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
@@ -32,7 +33,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  presetLocal.addEventListener('click', () => {
-    urlInput.value = DEFAULT_URL;
-  });
+  if (presetVercel) {
+    presetVercel.addEventListener('click', () => {
+      urlInput.value = DEFAULT_URL;
+    });
+  }
+
+  if (presetLocal) {
+    presetLocal.addEventListener('click', () => {
+      urlInput.value = 'http://localhost:3000';
+    });
+  }
 });

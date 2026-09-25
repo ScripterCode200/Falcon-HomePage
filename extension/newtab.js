@@ -1,4 +1,4 @@
-const DEFAULT_URL = 'http://localhost:3000';
+const DEFAULT_URL = 'https://falcon-home-page-h1axd0oyh-shivam-sainis-projects-e02f6aa4.vercel.app';
 
 function loadFalcon() {
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
