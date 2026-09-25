@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Falcon Extension Settings</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #0b0f17;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      width: 360px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+    .field {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 9px 12px;
+      background: #151d2c;
+      border: 1px solid #2d3b55;
+      border-radius: 8px;
+      color: #f8fafc;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus {
+      border-color: #38bdf8;
+    }
+    .presets {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .chip {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: #1e293b;
+      color: #38bdf8;
+      cursor: pointer;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+    .chip:hover {
+      background: #25334a;
+    }
+    .save-btn {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .save-btn:hover {
+      opacity: 0.9;
+    }
+    .status {
+      margin-top: 10px;
+      font-size: 12px;
+      text-align: center;
+      color: #34d399;
+      min-height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="FAV_Final.png" alt="Falcon" class="logo">
+    <h2>Falcon Settings</h2>
+  </div>
+
+  <div class="field">
+    <label for="url-input">Falcon Startpage URL:</label>
+    <input type="text" id="url-input" placeholder="http://localhost:3000">
+    <div class="presets">
+      <span class="chip" id="preset-local">localhost:3000</span>
+    </div>
+  </div>
+
+  <button class="save-btn" id="save-btn">Save Settings</button>
+  <div class="status" id="status-msg"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>

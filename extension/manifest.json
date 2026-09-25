@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Falcon - Intelligent Startpage",
+  "version": "1.0.0",
+  "description": "Minimalist startpage with smart web search, customizable speed dial shortcuts, and daily AI trivia.",
+  "icons": {
+    "16": "FAV_Final.png",
+    "48": "FAV_Final.png",
+    "128": "FAV_Final.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  }
+}
