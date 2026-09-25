@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, MoreVertical, Edit2, Trash2, Copy, ExternalLink, RotateCcw, Check } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Plus, MoreVertical, Edit2, Trash2, Copy, ExternalLink, Check, X } from 'lucide-react';
 import {
   Shortcut,
   DEFAULT_SHORTCUTS,
@@ -9,9 +10,12 @@ import {
   saveShortcutsToStorage,
   getFaviconUrl,
   formatCleanUrl,
+  fetchShortcutsApi,
+  addShortcutApi,
+  updateShortcutApi,
+  deleteShortcutApi,
 } from '@/lib/shortcutsData';
 import { sounds } from '@/lib/soundEffects';
-
 import { useAuth } from '@/context/AuthContext';
 
 export const ShortcutsGrid: React.FC = () => {
@@ -24,12 +28,33 @@ export const ShortcutsGrid: React.FC = () => {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [imageErrorMap, setImageErrorMap] = useState<Record<string, boolean>>({});
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Load shortcuts immediately (local first, then DB sync)
+  useEffect(() => {
+    // 1. Initial immediate render from localStorage (or defaults)
+    const local = loadSavedShortcuts();
+    const initial = local && local.length > 0 ? local : DEFAULT_SHORTCUTS;
+    setShortcuts(initial);
+
+    // 2. Fetch from MongoDB Atlas API to ensure database persistence
+    fetchShortcutsApi().then((dbList) => {
+      if (Array.isArray(dbList) && dbList.length > 0) {
+        setShortcuts(dbList);
+        saveShortcutsToStorage(dbList);
+      }
+    });
+  }, []);
+
+  // Sync if user logs in
   useEffect(() => {
     if (user && user.shortcuts && user.shortcuts.length > 0) {
       setShortcuts(user.shortcuts);
-    } else {
-      setShortcuts(loadSavedShortcuts());
+      saveShortcutsToStorage(user.shortcuts);
     }
   }, [user]);
 
@@ -64,7 +89,9 @@ export const ShortcutsGrid: React.FC = () => {
     const updated = shortcuts.filter((s) => s.id !== id);
     setShortcuts(updated);
     saveShortcutsToStorage(updated);
-    syncCloudData(updated);
+    // Delete in MongoDB Atlas & user cloud
+    deleteShortcutApi(id);
+    if (user) syncCloudData(updated);
     setActiveMenuId(null);
   };
 
@@ -84,18 +111,19 @@ export const ShortcutsGrid: React.FC = () => {
     sounds.playClick();
     const cleanUrl = formatCleanUrl(urlInput);
 
-    let updatedList: Shortcut[] = [];
     if (editingShortcut) {
       // Edit existing
-      updatedList = shortcuts.map((s) =>
-        s.id === editingShortcut.id
-          ? {
-              ...s,
-              title: titleInput.trim(),
-              url: cleanUrl,
-            }
-          : s
-      );
+      const updatedItem: Shortcut = {
+        ...editingShortcut,
+        title: titleInput.trim(),
+        url: cleanUrl,
+      };
+      const updatedList = shortcuts.map((s) => (s.id === editingShortcut.id ? updatedItem : s));
+      setShortcuts(updatedList);
+      saveShortcutsToStorage(updatedList);
+      // Persist edit to MongoDB Atlas
+      updateShortcutApi(updatedItem);
+      if (user) syncCloudData(updatedList);
     } else {
       // Add new
       const newShortcut: Shortcut = {
@@ -103,21 +131,15 @@ export const ShortcutsGrid: React.FC = () => {
         title: titleInput.trim(),
         url: cleanUrl,
       };
-      updatedList = [...shortcuts, newShortcut];
+      const updatedList = [...shortcuts, newShortcut];
+      setShortcuts(updatedList);
+      saveShortcutsToStorage(updatedList);
+      // Persist new to MongoDB Atlas
+      addShortcutApi(newShortcut);
+      if (user) syncCloudData(updatedList);
     }
 
-    setShortcuts(updatedList);
-    saveShortcutsToStorage(updatedList);
-    syncCloudData(updatedList);
     setIsModalOpen(false);
-  };
-
-  const handleResetDefaults = () => {
-    sounds.playClick();
-    if (confirm('Reset all shortcuts back to default Google Chrome set?')) {
-      setShortcuts(DEFAULT_SHORTCUTS);
-      saveShortcutsToStorage(DEFAULT_SHORTCUTS);
-    }
   };
 
   const handleImageError = (id: string) => {
@@ -238,20 +260,33 @@ export const ShortcutsGrid: React.FC = () => {
         })}
 
         {/* Add Shortcut Tile */}
-        <button type="button" className="shortcut-tile" onClick={openAddModal} title="Add new shortcut link">
+        <button
+          type="button"
+          className="shortcut-tile add-tile"
+          onClick={openAddModal}
+          title="Add new shortcut link"
+        >
           <div className="shortcut-icon-circle">
-            <Plus size={22} style={{ color: 'var(--text-secondary)' }} />
+            <Plus size={20} />
           </div>
           <span className="shortcut-title">Add shortcut</span>
         </button>
       </div>
 
-      {/* Add / Edit Modal */}
-      {isModalOpen && (
+      {/* Add / Edit Modal - Portaled to document.body so it is never overlapped by split panes */}
+      {isModalOpen && mounted && createPortal(
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">{editingShortcut ? 'Edit Shortcut' : 'Add Shortcut'}</h2>
+              <button
+                type="button"
+                className="tool-icon-btn"
+                onClick={() => setIsModalOpen(false)}
+                title="Close"
+              >
+                <X size={18} />
+              </button>
             </div>
 
             <form onSubmit={handleSaveModal}>
@@ -304,7 +339,7 @@ export const ShortcutsGrid: React.FC = () => {
                 </div>
               )}
 
-              <div className="modal-actions">
+              <div className="modal-actions" style={{ marginTop: '22px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button
                   type="button"
                   className="google-btn"
@@ -318,7 +353,8 @@ export const ShortcutsGrid: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );

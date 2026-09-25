@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Lock, Mail, User, Eye, EyeOff, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { sounds } from '@/lib/soundEffects';
@@ -14,8 +15,13 @@ export const AuthModal: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (!isAuthModalOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isAuthModalOpen || !mounted) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +54,7 @@ export const AuthModal: React.FC = () => {
     openAuthModal(tab);
   };
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={closeAuthModal}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
         {/* Header with Close */}
@@ -293,6 +299,7 @@ export const AuthModal: React.FC = () => {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -58,7 +58,7 @@ export const DEFAULT_SHORTCUTS: Shortcut[] = [
   },
 ];
 
-const SHORTCUTS_STORAGE_KEY = 'falcon_custom_shortcuts_v1';
+const SHORTCUTS_STORAGE_KEY = 'falcon_custom_shortcuts_v2';
 
 export function getFaviconUrl(urlStr: string): string {
   try {
@@ -100,5 +100,57 @@ export function loadSavedShortcuts(): Shortcut[] {
 export function saveShortcutsToStorage(shortcuts: Shortcut[]) {
   if (typeof window !== 'undefined') {
     localStorage.setItem(SHORTCUTS_STORAGE_KEY, JSON.stringify(shortcuts));
+  }
+}
+
+// --- Direct Database API calls for Shortcuts ---
+
+export async function fetchShortcutsApi(): Promise<Shortcut[]> {
+  try {
+    const res = await fetch('/api/shortcuts');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.shortcuts) && data.shortcuts.length > 0) {
+        saveShortcutsToStorage(data.shortcuts);
+        return data.shortcuts;
+      }
+    }
+  } catch (err) {
+    console.warn('[fetchShortcutsApi] Network error:', err);
+  }
+  return loadSavedShortcuts();
+}
+
+export async function addShortcutApi(shortcut: Shortcut): Promise<void> {
+  try {
+    await fetch('/api/shortcuts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(shortcut),
+    });
+  } catch (err) {
+    console.warn('[addShortcutApi] Failed to sync to DB:', err);
+  }
+}
+
+export async function updateShortcutApi(shortcut: Shortcut): Promise<void> {
+  try {
+    await fetch('/api/shortcuts', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(shortcut),
+    });
+  } catch (err) {
+    console.warn('[updateShortcutApi] Failed to sync to DB:', err);
+  }
+}
+
+export async function deleteShortcutApi(id: string): Promise<void> {
+  try {
+    await fetch(`/api/shortcuts?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  } catch (err) {
+    console.warn('[deleteShortcutApi] Failed to delete from DB:', err);
   }
 }
